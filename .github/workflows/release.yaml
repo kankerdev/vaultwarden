@@ -34,26 +34,6 @@ jobs:
           driver-opts: |
             network=host
 
-      # Determine Base Tags and Source Version
-      - name: Determine Base Tags and Source Version
-        shell: bash
-        run: |
-          # Check which main tag we are going to build determined by github.ref_type
-          if [[ "${{ github.ref_type }}" == "tag" ]]; then
-            echo "BASE_TAGS=latest,${GITHUB_REF#refs/*/}" | tee -a "${GITHUB_ENV}"
-          elif [[ "${{ github.ref_type }}" == "branch" ]]; then
-            echo "BASE_TAGS=testing" | tee -a "${GITHUB_ENV}"
-          fi
-
-          # Get the Source Version for this release
-          GIT_EXACT_TAG="$(git describe --tags --abbrev=0 --exact-match 2>/dev/null || true)"
-          if [[ -n "${GIT_EXACT_TAG}" ]]; then
-              echo "SOURCE_VERSION=${GIT_EXACT_TAG}" | tee -a "${GITHUB_ENV}"
-          else
-              GIT_LAST_TAG="$(git describe --tags --abbrev=0)"
-              echo "SOURCE_VERSION=${GIT_LAST_TAG}-${SOURCE_COMMIT:0:8}" | tee -a "${GITHUB_ENV}"
-          fi
-
       # Login to GitHub Container Registry
       - name: Login to GitHub Container Registry
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
@@ -68,4 +48,3 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
-          tags: "${{ env.BASE_TAGS }}"
